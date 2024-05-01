@@ -1,0 +1,203 @@
+Please sign up for a GCP free account and complete this SQL assignment. Please let me know if you have any questions on GCP Account. 
+
+Expected Date to Complete :  1/4/2024
+
+I want all the sql's tested and pushed into git. Do not send sql's as attachments. 
+
+Please share the git link. 
+
+SQL Assignment
+
+There is a preloaded Public Dataset available in BQ.
+
+BQ Project Name = bigquery-public-data
+
+1. I need total Population in zipcode 94085 (Sunnyvale CA)
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+select sum(population) as total_population from bigquery-public-data.census_bureau_usa.population_by_zip_2010
+where zipcode = '94085'
+ 
+2. I need number of Male and Female head count in zipcode 94085 (Sunnyvale CA)
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS: 
+
+SELECT 
+   gender,
+   Total_Population
+FROM 
+   (
+      SELECT 
+         gender,
+         SUM(population) AS Total_Population,
+         ROW_NUMBER() OVER (ORDER BY SUM(population) DESC) as row_num
+      FROM 
+         `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+      WHERE
+         zipcode = '94085' and gender is not null
+      GROUP BY
+         gender
+   ) 
+WHERE 
+   row_num <= 2
+
+
+
+3. I want which Age group has max headcount for both male and female genders combine (zipcode 94085 (Sunnyvale CA))
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+SELECT * from (
+select minimum_age, maximum_age, gender, population,
+dense_rank() over (partition by gender order by population desc) as rnk
+FROM 
+    `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+where
+    zipcode = '94085' and gender is not null and minimum_age is not null and maximum_age is not null
+)where rnk =1
+
+
+4. I want age group for male gender which has max male population zipcode 94085 (Sunnyvale CA))
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+SELECT 
+   minimum_age, maximum_age, gender, Total_Population
+FROM 
+   (
+      SELECT 
+         minimum_age, maximum_age, gender,
+         SUM(population) AS Total_Population,
+         RANK() OVER (ORDER BY SUM(population) DESC) as rank_num
+      FROM 
+         `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+      WHERE
+         zipcode = '94085' and gender is not null and maximum_age is not null and minimum_age is not null
+      GROUP BY
+         minimum_age, maximum_age, gender
+   ) 
+WHERE 
+   rank_num = 1
+
+5. I want age group for female gender which has max female population zipcode 94085 (Sunnyvale CA))
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+SELECT 
+   minimum_age, maximum_age, gender, Total_Population
+FROM 
+   (
+      SELECT 
+         minimum_age, maximum_age, gender,
+         SUM(population) AS Total_Population,
+         DENSE_RANK() OVER (ORDER BY SUM(population) DESC) as dense_rank_num
+      FROM 
+         `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+      WHERE
+         zipcode = '94085' and gender = 'female' and maximum_age is not null and minimum_age is not null
+      GROUP BY
+         minimum_age, maximum_age, gender
+   ) 
+WHERE 
+   dense_rank_num = 1
+
+
+
+6. I want zipcode which has highest male and female population in USA
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+ SELECT * from (
+select zipcode, gender, population,
+dense_rank() over (partition by gender order by population desc) as rnk
+FROM 
+    `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+where
+     gender is not null and minimum_age is not null and maximum_age is not null
+)where rnk =1
+
+
+7. I want first five age groups which has highest male and female population in USA
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+ 
+SELECT 
+    minimum_age,
+    maximum_age,
+    gender,
+    population,
+    DENSE_RANK() OVER (PARTITION BY gender ORDER BY population DESC) AS rnk
+FROM 
+    `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+WHERE
+    gender IS NOT NULL AND
+    minimum_age IS NOT NULL AND
+    maximum_age IS NOT NULL
+QUALIFY rnk <= 5
+
+8. I want first five zipcodes which has highest female population in entire USA
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+SELECT 
+   zipcode, gender, Total_Population
+FROM 
+   (
+      SELECT 
+         zipcode, gender,
+         SUM(population) AS Total_Population,
+         ROW_NUMBER() OVER (ORDER BY SUM(population) DESC) as row_num
+      FROM 
+         `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+      WHERE
+         gender = 'female' and minimum_age is not null and maximum_age is not null
+      GROUP BY
+         zipcode, gender
+   ) 
+WHERE 
+   row_num <= 5
+
+
+9. I want first 10 which has lowest male population in entire USA
+
+ Table = `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+
+ANS:
+
+SELECT 
+   zipcode, gender, Total_Population
+FROM 
+   (
+      SELECT 
+         zipcode, gender,
+         SUM(population) AS Total_Population,
+         ROW_NUMBER() OVER (ORDER BY SUM(population)) as row_num
+      FROM 
+         `bigquery-public-data.census_bureau_usa.population_by_zip_2010`
+      WHERE
+         gender = 'male' and minimum_age is not null and maximum_age is not null
+      GROUP BY
+         zipcode, gender
+   ) 
+WHERE 
+   row_num <= 10
+   
+
+Thanks 
